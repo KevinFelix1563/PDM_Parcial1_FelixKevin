@@ -17,14 +17,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.blackjack.ui.theme.BlackjackTheme
+import com.example.blackjack.ui.theme.TemaBlackjack
 
 class InstruccionesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val tema = intent.getStringExtra("tema") ?: "Verde"
+        
         setContent {
-            BlackjackTheme {
+            TemaBlackjack(temaSeleccionado = tema) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(
                         modifier = Modifier

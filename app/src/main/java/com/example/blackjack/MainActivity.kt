@@ -30,16 +30,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.blackjack.ui.theme.BlackjackTheme
+import com.example.blackjack.ui.theme.TemaBlackjack
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            BlackjackTheme {
+            var temaGlobal by remember { mutableStateOf("Verde") }
+            
+            TemaBlackjack(temaSeleccionado = temaGlobal) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MenuPrincipal(
+                        temaActual = temaGlobal,
+                        onTemaChange = { temaGlobal = it },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -49,12 +53,15 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MenuPrincipal(modifier: Modifier = Modifier) {
+fun MenuPrincipal(
+    temaActual: String,
+    onTemaChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
 
     var nombre by remember { mutableStateOf("") }
     var meta by remember { mutableFloatStateOf(21f) }
-    var tema by remember { mutableStateOf("Verde") }
 
     Column(
         modifier = modifier
@@ -104,25 +111,25 @@ fun MenuPrincipal(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             OutlinedButton(
-                onClick = { tema = "Verde" },
+                onClick = { onTemaChange("Verde") },
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = if (tema == "Verde") MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                    containerColor = if (temaActual == "Verde") MaterialTheme.colorScheme.primaryContainer else Color.Transparent
                 )
             ) {
                 Text("Verde")
             }
             OutlinedButton(
-                onClick = { tema = "Oscuro" },
+                onClick = { onTemaChange("Oscuro") },
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = if (tema == "Oscuro") MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                    containerColor = if (temaActual == "Oscuro") MaterialTheme.colorScheme.primaryContainer else Color.Transparent
                 )
             ) {
                 Text("Oscuro")
             }
             OutlinedButton(
-                onClick = { tema = "Rojo" },
+                onClick = { onTemaChange("Rojo") },
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = if (tema == "Rojo") MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                    containerColor = if (temaActual == "Rojo") MaterialTheme.colorScheme.primaryContainer else Color.Transparent
                 )
             ) {
                 Text("Rojo")
@@ -134,20 +141,24 @@ fun MenuPrincipal(modifier: Modifier = Modifier) {
                 val intent = Intent(context, JuegoActivity::class.java).apply {
                     putExtra("nombre", nombre)
                     putExtra("meta", meta.toInt())
-                    putExtra("tema", tema)
+                    putExtra("tema", temaActual)
                 }
                 context.startActivity(intent)
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp)
+                .padding(bottom = 8.dp),
+            enabled = nombre.isNotBlank()
         ) {
             Text("Jugar")
         }
 
         Button(
             onClick = {
-                context.startActivity(Intent(context, ScoreActivity::class.java))
+                val intent = Intent(context, ScoreActivity::class.java).apply {
+                    putExtra("tema", temaActual)
+                }
+                context.startActivity(intent)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -158,7 +169,10 @@ fun MenuPrincipal(modifier: Modifier = Modifier) {
 
         Button(
             onClick = {
-                context.startActivity(Intent(context, InstruccionesActivity::class.java))
+                val intent = Intent(context, InstruccionesActivity::class.java).apply {
+                    putExtra("tema", temaActual)
+                }
+                context.startActivity(intent)
             },
             modifier = Modifier.fillMaxWidth()
         ) {

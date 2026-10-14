@@ -33,10 +33,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.blackjack.ui.theme.BlackjackTheme
+import com.example.blackjack.ui.theme.TemaBlackjack
 
 class JuegoActivity : ComponentActivity() {
 
@@ -49,11 +50,12 @@ class JuegoActivity : ComponentActivity() {
         // Recuperar los extras del Intent
         val nombre = intent.getStringExtra("nombre") ?: "Jugador"
         val meta = intent.getIntExtra("meta", 21)
+        val tema = intent.getStringExtra("tema") ?: "Verde"
 
         viewModel.iniciarPartida(meta)
 
         setContent {
-            BlackjackTheme {
+            TemaBlackjack(temaSeleccionado = tema) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     PantallaJuego(
                         viewModel = viewModel,
@@ -78,6 +80,7 @@ fun PantallaJuego(
 ) {
     // Recolectar el estado
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -149,17 +152,28 @@ fun PantallaJuego(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
-                    onClick = { viewModel.pedirCartaJugador() },
+                    onClick = { viewModel.pedirCartaJugador(nombre, context) },
                     enabled = uiState.estadoPartida == "Jugando"
                 ) {
                     Text("Pedir Carta")
                 }
                 
                 OutlinedButton(
-                    onClick = { viewModel.plantarse() },
+                    onClick = { viewModel.plantarse(nombre, context) },
                     enabled = uiState.estadoPartida == "Jugando"
                 ) {
                     Text("Plantarse")
+                }
+            }
+
+            if (uiState.estadoPartida != "Jugando") {
+                Button(
+                    onClick = { viewModel.iniciarPartida(meta) },
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .padding(bottom = 8.dp)
+                ) {
+                    Text("Volver a Jugar")
                 }
             }
 

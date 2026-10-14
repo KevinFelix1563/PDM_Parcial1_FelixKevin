@@ -14,7 +14,7 @@ class JuegoViewModel : ViewModel() {
     private var barajaActual: MutableList<Carta> = mutableListOf()
 
     fun iniciarPartida(metaSeleccionada: Int) {
-        barajaActual = BarajaProvider.obtenerBarajaMezclada()
+        barajaActual = Baraja.obtenerBarajaMezclada()
         
         val cartasJugador = listOf(barajaActual.removeAt(0), barajaActual.removeAt(0))
         val cartasCrupier = listOf(barajaActual.removeAt(0), barajaActual.removeAt(0))
@@ -40,7 +40,7 @@ class JuegoViewModel : ViewModel() {
         return suma
     }
 
-    fun pedirCartaJugador() {
+    fun pedirCartaJugador(nombreJugador: String, context: android.content.Context) {
         if (_uiState.value.estadoPartida != "Jugando") return
 
         val nuevaCarta = barajaActual.removeAt(0)
@@ -55,6 +55,7 @@ class JuegoViewModel : ViewModel() {
                     estadoPartida = "Gana Crupier"
                 )
             }
+            guardarPartida(nombreJugador, context)
         } else {
             _uiState.update {
                 it.copy(
@@ -65,7 +66,7 @@ class JuegoViewModel : ViewModel() {
         }
     }
 
-    fun plantarse() {
+    fun plantarse(nombreJugador: String, context: android.content.Context) {
         if (_uiState.value.estadoPartida != "Jugando") return
 
         var manoCrupierActual = _uiState.value.manoCrupier
@@ -93,5 +94,40 @@ class JuegoViewModel : ViewModel() {
                 estadoPartida = estadoFinal
             )
         }
+        guardarPartida(nombreJugador, context)
+    }
+
+    private fun guardarPartida(nombreJugador: String, context: android.content.Context) {
+        val tinyDb = TinyDB(context)
+        val estado = _uiState.value.estadoPartida
+
+        val ganador: String
+        val perdedor: String
+        val cartas: String
+
+        when (estado) {
+            "Gana Jugador" -> {
+                ganador = nombreJugador
+                perdedor = "Crupier"
+                cartas = _uiState.value.manoJugador.joinToString(", ") { it.nombre }
+            }
+            "Gana Crupier" -> {
+                ganador = "Crupier"
+                perdedor = nombreJugador
+                cartas = _uiState.value.manoCrupier.joinToString(", ") { it.nombre }
+            }
+            else -> {
+                ganador = "EMPATE"
+                perdedor = "EMPATE"
+                cartas = _uiState.value.manoJugador.joinToString(", ") { it.nombre }
+            }
+        }
+
+        val fecha = java.text.SimpleDateFormat("dd MMM yyyy - HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
+        val resultado = "$ganador|$perdedor|$fecha|$cartas"
+
+        val lista = tinyDb.getListString("historial_score") ?: ArrayList()
+        lista.add(0, resultado)
+        tinyDb.putListString("historial_score", lista)
     }
 }

@@ -1,6 +1,6 @@
 package com.example.blackjack
 
-object BarajaProvider {
+object Baraja {
 
     fun obtenerBarajaMezclada(): MutableList<Carta> {
         val baraja = mutableListOf<Carta>()
